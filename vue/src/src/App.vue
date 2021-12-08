@@ -7,8 +7,7 @@
       type="file"
       ref="file"
       multiple
-      webkitdirectory
-      @change="handleReadFile"
+      @change="handler2"
     />
     <div id="sample"></div>
     <html>
@@ -70,7 +69,10 @@ export default {
           continue;
         }
         fileObjs[key].arrayBuffer().then((buffer) => {
-          const workbook = XLSX.read(buffer, { type: "buffer", bookVBA: true });
+          const workbook = XLSX.read(buffer, {
+            type: "buffer",
+            bookVBA: true,
+          });
           const sheets = workbook.Sheets;
           for (const sheetName in sheets) {
             const doc = {};
@@ -110,6 +112,44 @@ export default {
       // console.log(sample)
       // XLSX.utils.sheet_add_dom(worksheet, document.getElementById('sample'), {origin: -1});
       // })
+    },
+
+    handler2() {
+      const input = this.$refs.file;
+      console.log("input.files", input.files);
+      // var input = document.getElementById("input_sheet");
+      
+
+      // フォームで入力されたExcelのsheetNameシートをオブジェクトにする。
+      var parseSheet = function (file, sheetName, callback) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var unit8 = new Uint8Array(e.target.result);
+          var workbook = XLSX.read(unit8, { type: "array" });
+          // 通常は1行目がヘッダ行となる。{header: 1} を指定で配列形式となる。
+          var sheet = XLSX.utils.sheet_to_txt(workbook.Sheets[sheetName], {
+            header: 1,
+          });
+          console.log("sheet", sheet);
+          // 基本的な使い方であれば、sheet_to_jsonの結果だけでOK
+          // 下記は変換を行う例
+          var result = [];
+          // 0行目から末尾まで走査
+          // for (var i = 0; i < sheet.length; i++) {
+          //   var row = sheet[i];
+          //   // 何か変換処理があれば行う
+          //   console.log(i, row);
+          //   result.push(row);
+          // }
+          callback(result);
+        };
+        reader.readAsArrayBuffer(file);
+      };
+
+      parseSheet(input.files[0], "シート1", function (result) {
+        // 変換後の処理
+        console.log("result", result);
+      });
     },
   },
 };
